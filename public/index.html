@@ -6,24 +6,25 @@
     <title>JO&SO | Discover Portugal's Coolest Hotels</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
     <style>
         :root {
-            --cream: #F7F5F0;
-            --warm-white: #FDFCFA;
-            --terracotta: #C4785A;
-            --terracotta-light: #D4917A;
-            --terracotta-dark: #A66347;
-            --deep-blue: #1A2B3C;
-            --soft-blue: #2C4356;
-            --gold: #C9A962;
-            --sage: #8B9A7D;
-            --text-dark: #2D2D2D;
-            --text-light: #6B6B6B;
-            --shadow: rgba(26, 43, 60, 0.08);
-            --shadow-strong: rgba(26, 43, 60, 0.15);
+            --white: #FFFFFF;
+            --black: #000000;
+            --grey-light: #F5F5F5;
+            --grey-mid: #E5E5E5;
+            --grey-text: #666666;
+            --ochre: #B57D14;
+            --lisbon: #B57D14;
+            --porto: #183577;
+            --algarve: #1D4954;
+            --alentejo: #7B5214;
+            --azores: #19613A;
+            --madeira: #002945;
+            --north: #8B4B63;
+            --central: #525A6B;
         }
 
         * {
@@ -35,315 +36,284 @@
         html, body {
             height: 100%;
             overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--black);
         }
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--cream);
-            color: var(--text-dark);
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
         }
 
-        #map {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+        /* Left Panel - Chat & Cards */
+        .left-panel {
+            width: 480px;
+            min-width: 480px;
             height: 100%;
-            z-index: 1;
-            background: linear-gradient(135deg, #E8E4DD 0%, #D4CFC5 50%, #C9C4BA 100%);
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+            border-right: 1px solid var(--grey-mid);
+            z-index: 10;
         }
 
-        .map-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 3;
-            background: 
-                radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(247, 245, 240, 0.3) 70%, rgba(247, 245, 240, 0.6) 100%),
-                linear-gradient(180deg, rgba(247, 245, 240, 0.4) 0%, transparent 20%, transparent 80%, rgba(247, 245, 240, 0.5) 100%);
-        }
-
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 100;
-            padding: 24px 40px;
+        /* Header */
+        .header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--grey-mid);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(180deg, rgba(247, 245, 240, 0.95) 0%, rgba(247, 245, 240, 0) 100%);
-            animation: fadeInDown 1s ease-out;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .logo {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 28px;
-            font-weight: 500;
-            letter-spacing: 3px;
-            color: var(--deep-blue);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--black);
             text-decoration: none;
-        }
-
-        .logo-ampersand {
-            color: var(--terracotta);
-            font-style: italic;
-            font-weight: 300;
         }
 
         .tagline {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 14px;
-            font-style: italic;
-            color: var(--text-light);
-            letter-spacing: 1px;
-        }
-
-        nav {
-            display: flex;
-            gap: 32px;
-            align-items: center;
-        }
-
-        nav a {
-            font-size: 13px;
-            font-weight: 400;
-            letter-spacing: 1px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            color: var(--text-dark);
+            color: var(--grey-text);
+            margin-top: 2px;
+        }
+
+        .header-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--black);
             text-decoration: none;
-            transition: color 0.3s ease;
-            position: relative;
+            padding: 8px 16px;
+            border: 1px solid var(--grey-mid);
+            border-radius: 6px;
+            transition: all 0.2s;
         }
 
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: var(--terracotta);
-            transition: width 0.3s ease;
+        .header-link:hover {
+            background: var(--black);
+            color: var(--white);
+            border-color: var(--black);
         }
 
-        nav a:hover { color: var(--terracotta); }
-        nav a:hover::after { width: 100%; }
-
-        .chat-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 50;
-            width: 100%;
-            max-width: 680px;
-            padding: 0 24px;
-            animation: fadeInUp 1.2s ease-out 0.3s both;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translate(-50%, -45%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
-        }
-
-        .chat-intro {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .chat-intro h1 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 400;
-            color: var(--deep-blue);
-            margin-bottom: 12px;
-            line-height: 1.2;
-        }
-
-        .chat-intro h1 span {
-            font-style: italic;
-            color: var(--terracotta);
-        }
-
-        .chat-intro p {
-            font-size: 15px;
-            color: var(--text-light);
-            line-height: 1.6;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .chat-box {
-            background: var(--warm-white);
-            border-radius: 24px;
-            box-shadow: 
-                0 4px 24px var(--shadow),
-                0 12px 48px var(--shadow-strong),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            overflow: hidden;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-        }
-
-        .chat-messages {
-            max-height: 320px;
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
             overflow-y: auto;
             padding: 24px;
-            display: none;
+            display: flex;
             flex-direction: column;
-            gap: 16px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--terracotta-light) transparent;
+            gap: 20px;
         }
 
-        .chat-messages.active { display: flex; }
+        /* Welcome State */
+        .welcome-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
 
-        .chat-messages::-webkit-scrollbar { width: 6px; }
-        .chat-messages::-webkit-scrollbar-track { background: transparent; }
-        .chat-messages::-webkit-scrollbar-thumb { background: var(--terracotta-light); border-radius: 3px; }
+        .welcome-state h1 {
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
 
+        .welcome-state p {
+            font-size: 15px;
+            color: var(--grey-text);
+            max-width: 320px;
+            line-height: 1.5;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 28px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .suggestion-btn {
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            background: var(--grey-light);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--black);
+            line-height: 1.4;
+        }
+
+        .suggestion-btn:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        /* Messages */
         .message {
-            max-width: 85%;
-            animation: messageIn 0.4s ease-out;
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes messageIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .message.user {
+        .message-user {
             align-self: flex-end;
-            background: var(--deep-blue);
-            color: white;
-            padding: 14px 20px;
-            border-radius: 20px 20px 6px 20px;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-            background: var(--cream);
-            color: var(--text-dark);
-            padding: 16px 20px;
-            border-radius: 20px 20px 20px 6px;
-            border: 1px solid rgba(196, 120, 90, 0.15);
-        }
-
-        .message.assistant .message-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--terracotta);
-            letter-spacing: 0.5px;
-        }
-
-        .message.assistant .message-header svg { width: 16px; height: 16px; }
-
-        .message p {
+            background: var(--black);
+            color: var(--white);
+            padding: 12px 16px;
+            border-radius: 16px 16px 4px 16px;
+            max-width: 85%;
             font-size: 14px;
-            line-height: 1.65;
-            margin-bottom: 8px;
+            line-height: 1.5;
         }
 
-        .message p:last-child { margin-bottom: 0; }
-
-        .message a {
-            color: var(--terracotta);
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }
-
-        .message a:hover { color: var(--terracotta-dark); }
-
-        .chat-input-wrapper {
-            padding: 20px 24px;
-            border-top: 1px solid rgba(196, 120, 90, 0.1);
+        .message-assistant {
             display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--black);
+        }
+
+        /* Hotel Cards */
+        .hotel-cards {
+            display: flex;
+            flex-direction: column;
             gap: 12px;
-            align-items: flex-end;
         }
 
-        .input-container { flex: 1; }
-
-        #chat-input {
-            width: 100%;
-            padding: 16px 20px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            border: 2px solid transparent;
-            border-radius: 16px;
-            background: var(--cream);
-            color: var(--text-dark);
-            outline: none;
-            transition: all 0.3s ease;
-            resize: none;
-            min-height: 54px;
-            max-height: 120px;
-        }
-
-        #chat-input::placeholder {
-            color: var(--text-light);
-            font-style: italic;
-        }
-
-        #chat-input:focus {
-            border-color: var(--terracotta-light);
-            background: var(--warm-white);
-            box-shadow: 0 0 0 4px rgba(196, 120, 90, 0.1);
-        }
-
-        .send-button {
-            width: 54px;
-            height: 54px;
-            border: none;
-            border-radius: 16px;
-            background: var(--terracotta);
-            color: white;
-            cursor: pointer;
+        .hotel-card {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
+            background: var(--white);
+            border: 1px solid var(--grey-mid);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
         }
 
-        .send-button:hover {
-            background: var(--terracotta-light);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(196, 120, 90, 0.3);
+        .hotel-card:hover {
+            border-color: var(--black);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .send-button:disabled {
-            background: var(--text-light);
-            cursor: not-allowed;
-            transform: none;
+        .hotel-card-image {
+            width: 120px;
+            min-width: 120px;
+            height: 140px;
+            object-fit: cover;
+            background: var(--grey-light);
         }
 
-        .send-button svg { width: 20px; height: 20px; }
+        .hotel-card-content {
+            flex: 1;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+        }
 
+        .hotel-card-region {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--ochre);
+            margin-bottom: 4px;
+        }
+
+        .hotel-card-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .hotel-card-description {
+            font-size: 12px;
+            color: var(--grey-text);
+            line-height: 1.5;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hotel-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-read-more, .btn-prices {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn-read-more {
+            background: var(--white);
+            color: var(--black);
+            border: 1px solid var(--grey-mid);
+        }
+
+        .btn-read-more:hover {
+            border-color: var(--black);
+        }
+
+        .btn-prices {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+        }
+
+        .btn-prices:hover {
+            background: #333;
+        }
+
+        /* Typing Indicator */
         .typing-indicator {
             display: flex;
             gap: 4px;
-            padding: 8px 0;
+            padding: 12px 0;
         }
 
         .typing-indicator span {
             width: 8px;
             height: 8px;
-            background: var(--terracotta-light);
+            background: var(--grey-mid);
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -352,493 +322,521 @@
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-8px); opacity: 1; }
+            0%, 60%, 100% { transform: translateY(0); background: var(--grey-mid); }
+            30% { transform: translateY(-6px); background: var(--black); }
         }
 
-        .suggestions {
+        /* Input Area */
+        .input-area {
+            padding: 16px 24px 24px;
+            border-top: 1px solid var(--grey-mid);
+            background: var(--white);
+        }
+
+        .input-wrapper {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 0 24px 20px;
-            justify-content: center;
+            gap: 10px;
+            align-items: flex-end;
         }
 
-        .suggestion-chip {
-            padding: 10px 18px;
-            background: transparent;
-            border: 1px solid rgba(196, 120, 90, 0.3);
-            border-radius: 24px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            color: var(--text-dark);
+        .input-field {
+            flex: 1;
+            padding: 14px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            border: 1px solid var(--grey-mid);
+            border-radius: 12px;
+            outline: none;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--black);
+        }
+
+        .input-field::placeholder {
+            color: #999;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: var(--black);
+            color: var(--white);
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .suggestion-chip:hover {
-            background: var(--terracotta);
-            border-color: var(--terracotta);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            z-index: 100;
-            padding: 20px 40px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: linear-gradient(0deg, rgba(247, 245, 240, 0.95) 0%, rgba(247, 245, 240, 0) 100%);
+            justify-content: center;
+            transition: all 0.2s;
         }
 
-        .footer-left {
-            font-size: 12px;
-            color: var(--text-light);
+        .send-btn:hover {
+            background: #333;
         }
 
-        .footer-left a {
-            color: var(--terracotta);
-            text-decoration: none;
+        .send-btn:disabled {
+            background: var(--grey-mid);
+            cursor: not-allowed;
         }
 
-        .footer-right {
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Right Panel - Map */
+        .right-panel {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Map Markers */
+        .map-marker {
+            background: var(--black);
+            color: var(--white);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
             display: flex;
-            gap: 24px;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .footer-right a {
-            font-size: 12px;
-            color: var(--text-light);
-            text-decoration: none;
-            transition: color 0.3s ease;
+        .map-marker:hover {
+            transform: scale(1.1);
         }
 
-        .footer-right a:hover { color: var(--terracotta); }
+        .map-marker.single {
+            width: 12px;
+            height: 12px;
+            border-width: 2px;
+        }
 
+        /* Map Controls */
         .map-controls {
-            position: fixed;
-            bottom: 100px;
-            right: 40px;
-            z-index: 50;
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            z-index: 10;
         }
 
         .map-control-btn {
-            width: 44px;
-            height: 44px;
-            border: none;
-            border-radius: 12px;
-            background: var(--warm-white);
-            color: var(--text-dark);
+            width: 40px;
+            height: 40px;
+            background: var(--white);
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 12px var(--shadow);
+            transition: all 0.2s;
         }
 
         .map-control-btn:hover {
-            background: var(--terracotta);
-            color: white;
-            transform: scale(1.05);
+            background: var(--black);
+            color: var(--white);
+            border-color: var(--black);
         }
 
-        .map-control-btn svg { width: 20px; height: 20px; }
-
-        .region-marker {
-            background: var(--warm-white);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--deep-blue);
-            box-shadow: 0 2px 12px var(--shadow);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            border: none;
+        .map-control-btn svg {
+            width: 18px;
+            height: 18px;
         }
 
-        .region-marker:hover {
-            background: var(--terracotta);
-            color: white;
-            transform: scale(1.05);
-        }
-
-        .region-marker .hotel-count {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 11px;
-            font-weight: 400;
-            color: var(--terracotta);
-            margin-left: 6px;
-        }
-
-        .region-marker:hover .hotel-count { color: rgba(255, 255, 255, 0.8); }
-
-        .cms-status {
-            position: fixed;
-            top: 90px;
-            right: 40px;
-            z-index: 100;
+        /* Status Indicator */
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
-            background: var(--warm-white);
+            padding: 8px 14px;
+            background: var(--white);
+            border: 1px solid var(--grey-mid);
             border-radius: 20px;
             font-size: 11px;
-            color: var(--text-light);
-            box-shadow: 0 2px 12px var(--shadow);
+            font-weight: 500;
+            color: var(--grey-text);
         }
 
-        .cms-status-dot {
+        .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--text-light);
+            background: var(--grey-mid);
         }
 
-        .cms-status-dot.connected { background: #4CAF50; }
-        .cms-status-dot.loading { background: var(--gold); animation: pulse 1s infinite; }
-        .cms-status-dot.error { background: #E57373; }
+        .status-dot.connected { background: #22C55E; }
+        .status-dot.loading { background: var(--ochre); animation: pulse 1s infinite; }
+        .status-dot.error { background: #EF4444; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
 
-        @media (max-width: 768px) {
-            header { padding: 16px 20px; }
-            .tagline { display: none; }
-            nav { gap: 20px; }
-            nav a { font-size: 11px; }
-            .chat-container { padding: 0 16px; }
-            .chat-intro h1 { font-size: 28px; }
-            .chat-messages { max-height: 240px; padding: 16px; }
-            .chat-input-wrapper { padding: 16px; }
-            .suggestions { padding: 0 16px 16px; }
-            .suggestion-chip { padding: 8px 14px; font-size: 12px; }
-            footer { padding: 16px 20px; flex-direction: column; gap: 12px; text-align: center; }
-            .map-controls { right: 16px; bottom: 140px; }
-            .cms-status { top: 80px; right: 16px; font-size: 10px; padding: 6px 12px; }
+        /* Hide mapbox attribution */
+        .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo {
+            display: none !important;
         }
 
-        .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo { display: none !important; }
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .app-container {
+                flex-direction: column-reverse;
+            }
+
+            .left-panel {
+                width: 100%;
+                min-width: unset;
+                height: 60vh;
+                border-right: none;
+                border-top: 1px solid var(--grey-mid);
+            }
+
+            .right-panel {
+                height: 40vh;
+            }
+
+            .welcome-state h1 {
+                font-size: 22px;
+            }
+
+            .suggestions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hotel-card {
+                flex-direction: column;
+            }
+
+            .hotel-card-image {
+                width: 100%;
+                height: 120px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div class="map-overlay"></div>
-
-    <div class="cms-status" id="cms-status">
-        <div class="cms-status-dot loading" id="cms-status-dot"></div>
-        <span id="cms-status-text">Connecting...</span>
-    </div>
-
-    <header>
-        <div>
-            <a href="https://joandso.com" class="logo">JO<span class="logo-ampersand">&</span>SO</a>
-            <p class="tagline">Handpicked by two Portuguese sisters</p>
-        </div>
-        <nav>
-            <a href="https://joandso.com/portugal">Hotels</a>
-            <a href="https://joandso.com/journal">Journal</a>
-            <a href="https://joandso.com/about-us/our-journey">About</a>
-        </nav>
-    </header>
-
-    <div class="chat-container">
-        <div class="chat-intro">
-            <h1>Discover Portugal's <span>coolest</span> hotels</h1>
-            <p>Ask us anything about boutique stays, hidden gems, and the places we love across Portugal</p>
-        </div>
-        
-        <div class="chat-box">
-            <div class="chat-messages" id="chat-messages"></div>
-            
-            <div class="suggestions" id="suggestions">
-                <button class="suggestion-chip" onclick="askSuggestion(this)">Best hotels in Lisbon with rooftop bars?</button>
-                <button class="suggestion-chip" onclick="askSuggestion(this)">Where to stay in the Douro Valley?</button>
-                <button class="suggestion-chip" onclick="askSuggestion(this)">Family-friendly hotels in Algarve</button>
-                <button class="suggestion-chip" onclick="askSuggestion(this)">Design hotels near Porto</button>
-            </div>
-            
-            <div class="chat-input-wrapper">
-                <div class="input-container">
-                    <textarea id="chat-input" placeholder="Ask about Portugal's boutique hotels..." rows="1"></textarea>
+    <div class="app-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="header">
+                <div>
+                    <a href="https://joandso.com" class="logo">JO&SO</a>
+                    <p class="tagline">Handpicked by two Portuguese sisters</p>
                 </div>
-                <button class="send-button" id="send-btn" onclick="sendMessage()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                <a href="https://joandso.com/portugal" class="header-link">View All Hotels</a>
+            </div>
+
+            <div class="chat-area" id="chat-area">
+                <div class="welcome-state" id="welcome-state">
+                    <h1>Discover Portugal's coolest hotels</h1>
+                    <p>Ask us anything about boutique stays, hidden gems, and the places we love</p>
+                    <div class="suggestions-grid">
+                        <button class="suggestion-btn" onclick="askQuestion(this)">Best hotels in Lisbon with a rooftop?</button>
+                        <button class="suggestion-btn" onclick="askQuestion(this)">Romantic getaway in Alentejo</button>
+                        <button class="suggestion-btn" onclick="askQuestion(this)">Where should I stay in Porto?</button>
+                        <button class="suggestion-btn" onclick="askQuestion(this)">Hotels near the beach in Algarve</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea 
+                        class="input-field" 
+                        id="input-field" 
+                        placeholder="Ask about Portugal's boutique hotels..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Map -->
+        <div class="right-panel">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Loading...</span>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="map-controls">
+                <button class="map-control-btn" onclick="zoomIn()" title="Zoom in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
+                <button class="map-control-btn" onclick="zoomOut()" title="Zoom out">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14"/>
+                    </svg>
+                </button>
+                <button class="map-control-btn" onclick="resetView()" title="Reset view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
                     </svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="map-controls">
-        <button class="map-control-btn" onclick="zoomIn()" title="Zoom in">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
-        <button class="map-control-btn" onclick="zoomOut()" title="Zoom out">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
-        <button class="map-control-btn" onclick="resetView()" title="Reset view">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                <path d="M3 3v5h5"></path>
-            </svg>
-        </button>
-    </div>
-
-    <footer>
-        <div class="footer-left">© 2024 <a href="https://joandso.com">JO&SO</a> · The coolest hotels in Portugal</div>
-        <div class="footer-right">
-            <a href="https://www.instagram.com/joandso.portugal/" target="_blank">Instagram</a>
-            <a href="https://joandso.com/about-us/our-journey">Our Story</a>
-            <a href="https://joandso.com/contact">Contact</a>
-        </div>
-    </footer>
-
     <script>
         // ============================================
-        // CONFIG & STATE
+        // STATE
         // ============================================
-        let config = {};
         let map = null;
-        let rotationPaused = false;
+        let config = {};
+        let allHotels = [];
         let chatHistory = [];
-
-        const regions = [
-            { name: 'Lisbon', count: 22, coords: [-9.1393, 38.7223] },
-            { name: 'Porto', count: 14, coords: [-8.6291, 41.1579] },
-            { name: 'Algarve', count: 17, coords: [-8.2500, 37.0179] },
-            { name: 'Alentejo', count: 21, coords: [-7.9135, 38.5667] },
-            { name: 'Douro', count: 10, coords: [-7.5300, 41.1621] },
-            { name: 'Azores', count: 12, coords: [-25.6687, 37.7412] },
-            { name: 'Madeira', count: 2, coords: [-16.9595, 32.6669] }
-        ];
+        let markers = [];
 
         // ============================================
         // INITIALIZATION
         // ============================================
         async function init() {
-            updateStatus('loading', 'Loading...');
-            
+            updateStatus('loading', 'Connecting...');
+
             try {
-                // Fetch config from server
-                const response = await fetch('/api/config');
-                config = await response.json();
-                
+                // Fetch config
+                const configRes = await fetch('/api/config');
+                config = await configRes.json();
+
+                // Fetch hotels
+                const hotelsRes = await fetch('/api/hotels');
+                allHotels = await hotelsRes.json();
+
                 // Update status
-                if (config.hasClaude && config.hasWebflow) {
-                    updateStatus('connected', `${config.hotelCount} hotels loaded`);
-                } else if (config.hasClaude) {
-                    updateStatus('connected', 'AI ready');
+                if (config.hasClaude && allHotels.length > 0) {
+                    updateStatus('connected', `${allHotels.length} hotels loaded`);
                 } else {
-                    updateStatus('error', 'API not configured');
+                    updateStatus('error', 'Configuration incomplete');
                 }
 
                 // Initialize map
                 if (config.mapboxToken) {
-                    initMap(config.mapboxToken);
+                    initMap();
                 }
+
+                // Setup input
+                setupInput();
 
             } catch (error) {
                 console.error('Init error:', error);
                 updateStatus('error', 'Connection failed');
             }
-
-            // Setup input handlers
-            const input = document.getElementById('chat-input');
-            input.addEventListener('input', autoResize);
-            input.addEventListener('keydown', handleKeyDown);
-            setTimeout(() => input.focus(), 1000);
         }
 
         function updateStatus(status, text) {
-            document.getElementById('cms-status-dot').className = 'cms-status-dot ' + status;
-            document.getElementById('cms-status-text').textContent = text;
+            document.getElementById('status-dot').className = 'status-dot ' + status;
+            document.getElementById('status-text').textContent = text;
+        }
+
+        function setupInput() {
+            const input = document.getElementById('input-field');
+            
+            input.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
         }
 
         // ============================================
         // MAP
         // ============================================
-        function initMap(token) {
-            if (typeof mapboxgl === 'undefined') {
-                console.error('Mapbox not loaded');
-                return;
-            }
-
-            mapboxgl.accessToken = token;
+        function initMap() {
+            mapboxgl.accessToken = config.mapboxToken;
             
             map = new mapboxgl.Map({
                 container: 'map',
                 style: 'mapbox://styles/mapbox/light-v11',
                 center: [-8.5, 39.5],
                 zoom: 6.2,
-                pitch: 45,
-                bearing: -10,
-                antialias: true
+                pitch: 0,
+                bearing: 0
             });
 
             map.scrollZoom.disable();
+            map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
 
             map.on('load', () => {
-                map.addSource('mapbox-dem', {
-                    'type': 'raster-dem',
-                    'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                    'tileSize': 512,
-                    'maxzoom': 14
-                });
-                
-                map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-                
-                map.addLayer({
-                    'id': 'sky',
-                    'type': 'sky',
-                    'paint': {
-                        'sky-type': 'atmosphere',
-                        'sky-atmosphere-sun': [0.0, 90.0],
-                        'sky-atmosphere-sun-intensity': 15
-                    }
-                });
-
-                addRegionMarkers();
-                rotateCamera();
-            });
-
-            map.on('mousedown', () => rotationPaused = true);
-            map.on('mouseup', () => setTimeout(() => rotationPaused = false, 3000));
-            map.on('touchstart', () => rotationPaused = true);
-            map.on('touchend', () => setTimeout(() => rotationPaused = false, 3000));
-        }
-
-        function addRegionMarkers() {
-            regions.forEach(region => {
-                const el = document.createElement('button');
-                el.className = 'region-marker';
-                el.innerHTML = `${region.name}<span class="hotel-count">${region.count}</span>`;
-                el.onclick = () => flyToRegion(region);
-                
-                new mapboxgl.Marker(el)
-                    .setLngLat(region.coords)
-                    .addTo(map);
+                addHotelMarkers();
             });
         }
 
-        function flyToRegion(region) {
-            map.flyTo({
-                center: region.coords,
-                zoom: 9,
-                pitch: 50,
-                bearing: Math.random() * 30 - 15,
-                duration: 2000
-            });
+        function addHotelMarkers() {
+            // Group hotels by approximate location for clustering
+            const clusters = {};
             
-            document.getElementById('chat-input').value = `Tell me about the best boutique hotels in ${region.name}`;
-            document.getElementById('chat-input').focus();
+            allHotels.forEach(hotel => {
+                if (!hotel.lat || !hotel.lng) return;
+                
+                // Round to create clusters
+                const key = `${Math.round(hotel.lat * 10) / 10},${Math.round(hotel.lng * 10) / 10}`;
+                if (!clusters[key]) {
+                    clusters[key] = [];
+                }
+                clusters[key].push(hotel);
+            });
+
+            Object.values(clusters).forEach(clusterHotels => {
+                const avgLat = clusterHotels.reduce((sum, h) => sum + h.lat, 0) / clusterHotels.length;
+                const avgLng = clusterHotels.reduce((sum, h) => sum + h.lng, 0) / clusterHotels.length;
+
+                const el = document.createElement('div');
+                el.className = 'map-marker' + (clusterHotels.length === 1 ? ' single' : '');
+                
+                if (clusterHotels.length > 1) {
+                    el.textContent = clusterHotels.length;
+                }
+
+                el.onclick = () => {
+                    if (clusterHotels.length === 1) {
+                        showHotelPopup(clusterHotels[0]);
+                    } else {
+                        map.flyTo({
+                            center: [avgLng, avgLat],
+                            zoom: map.getZoom() + 2,
+                            duration: 1000
+                        });
+                    }
+                };
+
+                const marker = new mapboxgl.Marker(el)
+                    .setLngLat([avgLng, avgLat])
+                    .addTo(map);
+                
+                markers.push(marker);
+            });
         }
 
-        function rotateCamera() {
-            if (map && !rotationPaused) {
-                map.rotateTo(map.getBearing() + 0.02, { duration: 100, easing: t => t });
+        function showHotelPopup(hotel) {
+            // For now, just zoom to it - could add popup later
+            map.flyTo({
+                center: [hotel.lng, hotel.lat],
+                zoom: 14,
+                duration: 1000
+            });
+        }
+
+        function flyTo(lat, lng, zoom = 12) {
+            if (map) {
+                map.flyTo({
+                    center: [lng, lat],
+                    zoom: zoom,
+                    duration: 1500
+                });
             }
-            requestAnimationFrame(rotateCamera);
         }
 
-        function zoomIn() { if (map) map.zoomIn({ duration: 500 }); }
-        function zoomOut() { if (map) map.zoomOut({ duration: 500 }); }
+        function zoomIn() { if (map) map.zoomIn({ duration: 300 }); }
+        function zoomOut() { if (map) map.zoomOut({ duration: 300 }); }
         function resetView() {
-            if (map) map.flyTo({ center: [-8.5, 39.5], zoom: 6.2, pitch: 45, bearing: -10, duration: 2000 });
+            if (map) map.flyTo({ center: [-8.5, 39.5], zoom: 6.2, duration: 1500 });
         }
 
         // ============================================
         // CHAT
         // ============================================
-        function autoResize() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        }
-
-        function handleKeyDown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function askSuggestion(chip) {
-            document.getElementById('chat-input').value = chip.textContent;
+        function askQuestion(btn) {
+            document.getElementById('input-field').value = btn.textContent;
             sendMessage();
         }
 
         async function sendMessage() {
-            const input = document.getElementById('chat-input');
+            const input = document.getElementById('input-field');
             const message = input.value.trim();
             if (!message) return;
 
-            const messagesEl = document.getElementById('chat-messages');
-            const suggestionsEl = document.getElementById('suggestions');
-            const sendBtn = document.getElementById('send-btn');
-
-            // Show messages, hide suggestions
-            messagesEl.classList.add('active');
-            suggestionsEl.style.display = 'none';
+            // Hide welcome state
+            const welcome = document.getElementById('welcome-state');
+            if (welcome) welcome.style.display = 'none';
 
             // Add user message
-            addMessage(message, 'user');
+            addUserMessage(message);
             input.value = '';
             input.style.height = 'auto';
 
             // Disable input
+            const sendBtn = document.getElementById('send-btn');
             sendBtn.disabled = true;
             input.disabled = true;
 
-            // Add typing indicator
-            const typingId = addTypingIndicator();
+            // Show typing
+            const typingEl = addTypingIndicator();
 
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         message,
-                        history: chatHistory.slice(-10) // Send last 10 messages for context
+                        history: chatHistory.slice(-10)
                     })
                 });
 
                 const data = await response.json();
-                removeTypingIndicator(typingId);
+                
+                // Remove typing
+                typingEl.remove();
 
                 if (data.error) {
-                    addMessage('We\'re having trouble connecting. Please visit <a href="https://joandso.com" target="_blank">joandso.com</a> to explore our collection.', 'assistant');
+                    addAssistantMessage("Sorry, something went wrong. Try again?", []);
                 } else {
-                    addMessage(data.response, 'assistant');
-                    // Add to history for context
+                    // Add to history
                     chatHistory.push({ role: 'user', content: message });
-                    chatHistory.push({ role: 'assistant', content: data.response });
+                    chatHistory.push({ role: 'assistant', content: data.message });
+
+                    // Show response
+                    addAssistantMessage(data.message, data.hotels || []);
+
+                    // Handle map action
+                    if (data.mapAction && data.mapAction.lat && data.mapAction.lng) {
+                        flyTo(data.mapAction.lat, data.mapAction.lng, data.mapAction.zoom || 12);
+                    }
                 }
 
             } catch (error) {
                 console.error('Chat error:', error);
-                removeTypingIndicator(typingId);
-                addMessage('We\'re having trouble connecting. Please visit <a href="https://joandso.com" target="_blank">joandso.com</a> to explore our collection.', 'assistant');
+                typingEl.remove();
+                addAssistantMessage("Having trouble connecting. Please try again.", []);
             }
 
             sendBtn.disabled = false;
@@ -846,68 +844,90 @@
             input.focus();
         }
 
-        function addMessage(content, type) {
-            const messagesEl = document.getElementById('chat-messages');
+        function addUserMessage(text) {
+            const chatArea = document.getElementById('chat-area');
             const div = document.createElement('div');
-            div.className = `message ${type}`;
-            
-            if (type === 'assistant') {
-                div.innerHTML = `
-                    <div class="message-header">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                        JO&SO
-                    </div>
-                    <div class="message-content">${formatMessage(content)}</div>
-                `;
-            } else {
-                div.innerHTML = `<p>${escapeHtml(content)}</p>`;
-            }
-            
-            messagesEl.appendChild(div);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
+            div.className = 'message message-user';
+            div.textContent = text;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
         }
 
-        function formatMessage(content) {
-            if (content.includes('<a href')) return `<p>${content}</p>`;
-            
-            let formatted = escapeHtml(content);
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/(?<!href=["'])(https?:\/\/)?joandso\.com(\/[^\s<]*)?/g, 
-                (match, protocol, path) => `<a href="https://joandso.com${path || ''}" target="_blank">joandso.com${path || ''}</a>`
-            );
-            formatted = formatted.replace(/\n\n/g, '</p><p>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            
-            return `<p>${formatted}</p>`;
+        function addAssistantMessage(text, hotels) {
+            const chatArea = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = 'message message-assistant';
+
+            let html = `<div class="message-text">${escapeHtml(text)}</div>`;
+
+            if (hotels && hotels.length > 0) {
+                html += '<div class="hotel-cards">';
+                hotels.forEach(hotel => {
+                    html += createHotelCard(hotel);
+                });
+                html += '</div>';
+            }
+
+            div.innerHTML = html;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function createHotelCard(hotel) {
+            const regionColor = getRegionColor(hotel.region);
+            const imageUrl = hotel.image || 'https://via.placeholder.com/240x280?text=Hotel';
+            const description = hotel.description || 'A beautiful boutique hotel in Portugal.';
+            const bookingUrl = hotel.bookingUrl || `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(hotel.name + ' Portugal')}`;
+
+            return `
+                <div class="hotel-card">
+                    <img src="${imageUrl}" alt="${escapeHtml(hotel.name)}" class="hotel-card-image" loading="lazy">
+                    <div class="hotel-card-content">
+                        <div class="hotel-card-region" style="color: ${regionColor}">${escapeHtml(hotel.region)}</div>
+                        <div class="hotel-card-name">${escapeHtml(hotel.name)}</div>
+                        <div class="hotel-card-description">${escapeHtml(description)}</div>
+                        <div class="hotel-card-actions">
+                            <a href="${hotel.url}" target="_blank" class="btn-read-more">Read More</a>
+                            <a href="${bookingUrl}" target="_blank" class="btn-prices">Show Prices</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getRegionColor(region) {
+            const r = (region || '').toLowerCase();
+            if (r.includes('lisbon')) return 'var(--lisbon)';
+            if (r.includes('porto')) return 'var(--porto)';
+            if (r.includes('algarve')) return 'var(--algarve)';
+            if (r.includes('alentejo')) return 'var(--alentejo)';
+            if (r.includes('azores')) return 'var(--azores)';
+            if (r.includes('madeira')) return 'var(--madeira)';
+            if (r.includes('north')) return 'var(--north)';
+            if (r.includes('central')) return 'var(--central)';
+            return 'var(--ochre)';
+        }
+
+        function addTypingIndicator() {
+            const chatArea = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = 'message message-assistant';
+            div.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return div;
         }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function addTypingIndicator() {
-            const id = 'typing-' + Date.now();
-            const messagesEl = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.className = 'message assistant';
-            div.id = id;
-            div.innerHTML = `
-                <div class="message-header">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    JO&SO
-                </div>
-                <div class="typing-indicator"><span></span><span></span><span></span></div>
-            `;
-            messagesEl.appendChild(div);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-            return id;
-        }
-
-        function removeTypingIndicator(id) {
-            const el = document.getElementById(id);
-            if (el) el.remove();
         }
 
         // Start

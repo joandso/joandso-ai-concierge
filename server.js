@@ -97,14 +97,11 @@ async function refreshCMSCache() {
   console.log('Refreshing CMS cache...');
   
   try {
-    // Get all collections
     const collectionsData = await fetchWebflowCollections();
     const collections = collectionsData.collections || [];
     
-    // Find relevant collections by name
     let hotelsCollectionId = null;
     let regionsCollectionId = null;
-    let collectionsCollectionId = null;
 
     for (const collection of collections) {
       const name = (collection.displayName || collection.slug || '').toLowerCase();
@@ -112,14 +109,11 @@ async function refreshCMSCache() {
         hotelsCollectionId = collection.id;
       } else if (name.includes('region') || name.includes('location')) {
         regionsCollectionId = collection.id;
-      } else if (name === 'collections' || name.includes('collection')) {
-        collectionsCollectionId = collection.id;
       }
     }
 
-    console.log('Found collections:', { hotelsCollectionId, regionsCollectionId, collectionsCollectionId });
+    console.log('Found collections:', { hotelsCollectionId, regionsCollectionId });
 
-    // Fetch items from each collection
     if (hotelsCollectionId) {
       cmsCache.hotels = await fetchAllCollectionItems(hotelsCollectionId);
       console.log(`Loaded ${cmsCache.hotels.length} hotels`);
@@ -128,11 +122,6 @@ async function refreshCMSCache() {
     if (regionsCollectionId) {
       cmsCache.regions = await fetchAllCollectionItems(regionsCollectionId);
       console.log(`Loaded ${cmsCache.regions.length} regions`);
-    }
-
-    if (collectionsCollectionId) {
-      cmsCache.collections = await fetchAllCollectionItems(collectionsCollectionId);
-      console.log(`Loaded ${cmsCache.collections.length} collections`);
     }
 
     cmsCache.lastFetch = Date.now();
@@ -144,91 +133,124 @@ async function refreshCMSCache() {
 }
 
 // ============================================
-// BUILD AI CONTEXT FROM CMS DATA
+// HOTEL DATA HELPERS
 // ============================================
 
-function buildHotelContext() {
-  if (cmsCache.hotels.length === 0) {
-    return '';
-  }
-
-  const hotelSummaries = cmsCache.hotels
-    .filter(hotel => hotel.fieldData && !hotel.fieldData.archived && !hotel.fieldData['is-closed'])
-    .slice(0, 100) // Limit to avoid token overflow
-    .map(hotel => {
-      const f = hotel.fieldData;
-      const name = f.name || f['hotel-name'] || 'Unnamed';
-      const region = f.region || f.location || f['region-2'] || 'Portugal';
-      const description = f['short-description'] || f.description || f['meta-description'] || '';
-      const rooms = f['number-of-rooms'] || f.rooms || '';
-      const slug = f.slug || '';
-      
-      let summary = `• ${name}`;
-      if (region) summary += ` (${region})`;
-      if (rooms) summary += ` - ${rooms} rooms`;
-      if (description) summary += `: ${description.substring(0, 150)}`;
-      if (slug) summary += ` [joandso.com/hotels-portugal/${slug}]`;
-      
-      return summary;
-    })
-    .join('\n');
-
-  return `\n\n--- CURRENT HOTEL DATABASE (${cmsCache.hotels.length} properties) ---\n${hotelSummaries}`;
+function getHotelBySlug(slug) {
+  const hotel = cmsCache.hotels.find(h => h.fieldData?.slug === slug);
+  if (!hotel) return null;
+  
+  const f = hotel.fieldData;
+  return {
+    name: f.name || f['hotel-name'] || 'Unnamed',
+    slug: f.slug,
+    region: f.region || f.location || f['region-2'] || 'Portugal',
+    description: f['short-description'] || f.description || f['meta-description'] || '',
+    lat: parseFloat(f.latitude || f.lat) || null,
+    lng: parseFloat(f.longitude || f.lng || f.lon) || null,
+    image: f['cover-image']?.url || f.cover?.url || f['main-image']?.url || '',
+    bookingUrl: f['booking-url'] || f['booking-link'] || f['show-prices-url'] || '',
+    rooms: f['number-of-rooms'] || f.rooms || '',
+    url: `https://joandso.com/hotels-portugal/${f.slug}`
+  };
 }
 
+function getAllHotels() {
+  return cmsCache.hotels
+    .filter(h => h.fieldData && !h.fieldData.archived && !h.fieldData['is-closed'])
+    .map(h => {
+      const f = h.fieldData;
+      return {
+        name: f.name || f['hotel-name'] || 'Unnamed',
+        slug: f.slug,
+        region: f.region || f.location || f['region-2'] || 'Portugal',
+        description: f['short-description'] || f.description || '',
+        lat: parseFloat(f.latitude || f.lat) || null,
+        lng: parseFloat(f.longitude || f.lng || f.lon) || null,
+        image: f['cover-image']?.url || f.cover?.url || f['main-image']?.url || '',
+        bookingUrl: f['booking-url'] || f['booking-link'] || f['show-prices-url'] || '',
+        url: `https://joandso.com/hotels-portugal/${f.slug}`
+      };
+    });
+}
+
+// ============================================
+// BUILD AI SYSTEM PROMPT
+// ============================================
+
 function buildSystemPrompt() {
-  const basePrompt = `You are the JO&SO AI assistant, representing a curated Portuguese boutique hotel guide founded by two Portuguese sisters, Joana and Sofia de Lacerda in 2016.
-
-Your role is to help travellers discover the coolest design-led boutique hotels across Portugal. You speak as "we" (representing the two sisters) with warmth, expertise, and authentic local knowledge.
-
-## Brand Principles
-- Selection criteria: beautiful design, thoughtful service, and good energy
-- All properties are personally visited and handpicked
-- No paid placements - complete editorial integrity
-- Focus on boutique, design-led properties
-- NEVER use words like "luxury", "resort", "premium", or "sophisticated"
-- Use British English spelling (colour, centre, travelled, favourite)
-- Refer to the website as "our guide" or "joandso.com", never "blog"
-
-## Key Regions
-- Lisbon: Chiado, Alfama, Príncipe Real, Baixa, Santos - "Portugal's vibrant capital"
-- Porto: Ribeira, Baixa, Foz do Douro - "our hometown"
-- Algarve: Lagos, Tavira, Faro, Aljezur - "golden cliffs and hidden coves"
-- Alentejo: Comporta, Évora, Monsaraz, Melides - "cork forests and endless plains"
-- Douro Valley: UNESCO wine region - "terraced vineyards and river views"
-- Azores: São Miguel, Faial, Pico - "volcanic islands in the Atlantic"
-- Madeira: Funchal - "subtropical gardens and dramatic cliffs"
-- Central Portugal: Serra da Estrela, Monsanto - "schist villages and mountain retreats"
-- North Portugal: Minho, Viana do Castelo - "green valleys and historic towns"
-
-## Response Guidelines
-- Be specific about what makes each property special
-- Mention design elements, atmosphere, and standout features
-- Share insider tips when relevant
-- Keep responses warm but concise (2-4 paragraphs typically)
-- When recommending hotels, include the URL: joandso.com/hotels-portugal/[slug]
-- If asked about hotels you don't have data for, direct users to joandso.com to explore
-- Never make up hotel details - if you're not sure, say so
-
-## Personality
-- Friendly and knowledgeable, like advising a friend planning a trip
-- Passionate about Portuguese design and hospitality
-- Honest - mention if a place might not suit certain travellers
-- Curious about what the traveller is looking for`;
-
-  // Add hotel data if available
-  const hotelContext = buildHotelContext();
+  const hotels = getAllHotels();
   
-  return basePrompt + hotelContext + `
+  const hotelContext = hotels.slice(0, 100).map(h => 
+    `- ${h.name} | region: ${h.region} | slug: ${h.slug}`
+  ).join('\n');
 
-Use this database to provide accurate, specific recommendations. Reference actual hotels from our collection when answering questions. Always prioritise hotels we've personally visited and featured.`;
+  return `You are the JO&SO AI concierge - an interactive guide to Portugal's coolest boutique hotels, created by two Portuguese sisters, Joana and Sofia de Lacerda.
+
+## YOUR ROLE
+You control an interactive visual interface. When you respond, you trigger visual actions: showing hotel cards, moving the map. Keep text SHORT - the visuals do the talking.
+
+## RESPONSE FORMAT
+You MUST respond with valid JSON only:
+{
+  "message": "Short friendly text (1-3 sentences max)",
+  "hotels": ["slug-1", "slug-2", "slug-3"],
+  "mapAction": {"type": "flyTo", "lat": 38.72, "lng": -9.14, "zoom": 12}
+}
+
+Fields:
+- "message": Short, warm response. Max 2-3 sentences. Like texting a friend.
+- "hotels": Array of hotel slugs to show as cards (max 4-6). Use EXACT slugs from the database below.
+- "mapAction": Where to fly the map. Set to null if no movement needed.
+
+## BRAND VOICE
+- Speak as "we" (two Portuguese sisters)
+- Porto is "our hometown"
+- British English (colour, favourite)
+- NEVER use: luxury, resort, premium, sophisticated, blog
+- Keep it SHORT - visuals do the work
+
+## REGION COORDINATES (for mapAction)
+- Lisbon: lat 38.7223, lng -9.1393, zoom 12
+- Porto: lat 41.1579, lng -8.6291, zoom 12
+- Algarve: lat 37.0179, lng -8.2500, zoom 9
+- Alentejo: lat 38.5667, lng -7.9135, zoom 9
+- Douro Valley: lat 41.1621, lng -7.5300, zoom 10
+- Azores: lat 37.7412, lng -25.6687, zoom 8
+- Madeira: lat 32.6669, lng -16.9595, zoom 10
+- Comporta: lat 38.3799, lng -8.7849, zoom 11
+- Central Portugal: lat 40.2033, lng -7.8659, zoom 9
+- North Portugal: lat 41.6946, lng -8.2, zoom 9
+- Portugal (overview): lat 39.5, lng -8.5, zoom 6.2
+
+## HOTEL DATABASE (${hotels.length} properties)
+${hotelContext}
+
+## EXAMPLES
+
+User: "Hotels in Lisbon with rooftop?"
+Response:
+{"message":"Rooftop moments in Lisbon are unbeatable! Here are our favourites with gorgeous terraces.","hotels":["memmo-alfama","memmo-principe-real","the-lumiares"],"mapAction":{"type":"flyTo","lat":38.7223,"lng":-9.1393,"zoom":12}}
+
+User: "Where is the Douro Valley?"
+Response:
+{"message":"The Douro is in northern Portugal - a UNESCO wine region about 2 hours east of Porto. The terraced vineyards are stunning.","hotels":[],"mapAction":{"type":"flyTo","lat":41.1621,"lng":-7.5300,"zoom":10}}
+
+User: "Something romantic in Alentejo"
+Response:
+{"message":"For romance in Alentejo, you can't go wrong with these. Rolling plains, cork forests, and that slow pace we love.","hotels":["sao-lourenco-do-barrocal","herdade-da-malhadinha-nova","sublime-comporta"],"mapAction":{"type":"flyTo","lat":38.5667,"lng":-7.9135,"zoom":9}}
+
+User: "Hi!"
+Response:
+{"message":"Hello! We're Joana and Sofia - welcome to our guide. What kind of Portugal trip are you dreaming of?","hotels":[],"mapAction":null}
+
+CRITICAL: Respond with valid JSON only. No markdown. No text outside the JSON.`;
 }
 
 // ============================================
 // API ROUTES
 // ============================================
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
@@ -238,7 +260,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Get config (public tokens only)
 app.get('/api/config', (req, res) => {
   res.json({
     mapboxToken: MAPBOX_TOKEN || '',
@@ -248,27 +269,25 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-// Get CMS stats
-app.get('/api/cms/stats', (req, res) => {
-  res.json({
-    hotels: cmsCache.hotels.length,
-    regions: cmsCache.regions.length,
-    collections: cmsCache.collections.length,
-    lastFetch: cmsCache.lastFetch,
-    cacheAge: cmsCache.lastFetch ? Date.now() - cmsCache.lastFetch : null
-  });
+app.get('/api/hotels', (req, res) => {
+  res.json(getAllHotels());
 });
 
-// Force cache refresh
+app.get('/api/hotels/:slug', (req, res) => {
+  const hotel = getHotelBySlug(req.params.slug);
+  if (hotel) {
+    res.json(hotel);
+  } else {
+    res.status(404).json({ error: 'Hotel not found' });
+  }
+});
+
 app.post('/api/cms/refresh', async (req, res) => {
   await refreshCMSCache();
-  res.json({ 
-    success: true, 
-    hotelCount: cmsCache.hotels.length 
-  });
+  res.json({ success: true, hotelCount: cmsCache.hotels.length });
 });
 
-// Chat endpoint
+// Main chat endpoint - returns structured JSON for visual interface
 app.post('/api/chat', async (req, res) => {
   if (!ANTHROPIC_API_KEY) {
     return res.status(500).json({ error: 'Anthropic API key not configured' });
@@ -286,11 +305,10 @@ app.post('/api/chat', async (req, res) => {
       await refreshCMSCache();
     }
 
-    // Build messages array with history
     const messages = [
-      ...history.map(msg => ({
+      ...history.slice(-10).map(msg => ({
         role: msg.role,
-        content: msg.content
+        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
       })),
       { role: 'user', content: message }
     ];
@@ -317,9 +335,42 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const data = await response.json();
+    const rawResponse = data.content[0]?.text || '';
     
+    // Parse the JSON response
+    let parsed;
+    try {
+      // Clean up potential markdown formatting
+      let cleanJson = rawResponse.trim();
+      if (cleanJson.startsWith('```json')) {
+        cleanJson = cleanJson.slice(7);
+      }
+      if (cleanJson.startsWith('```')) {
+        cleanJson = cleanJson.slice(3);
+      }
+      if (cleanJson.endsWith('```')) {
+        cleanJson = cleanJson.slice(0, -3);
+      }
+      parsed = JSON.parse(cleanJson.trim());
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', rawResponse);
+      // Fallback response
+      parsed = {
+        message: rawResponse.substring(0, 200) || "Let me help you find the perfect hotel in Portugal.",
+        hotels: [],
+        mapAction: null
+      };
+    }
+
+    // Resolve hotel slugs to full hotel data
+    const hotelCards = (parsed.hotels || [])
+      .map(slug => getHotelBySlug(slug))
+      .filter(h => h !== null);
+
     res.json({
-      response: data.content[0]?.text || 'I couldn\'t generate a response.',
+      message: parsed.message || '',
+      hotels: hotelCards,
+      mapAction: parsed.mapAction || null,
       usage: data.usage
     });
 
@@ -329,30 +380,6 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Get hotels for map markers
-app.get('/api/hotels/markers', (req, res) => {
-  const markers = cmsCache.hotels
-    .filter(hotel => {
-      const f = hotel.fieldData;
-      return f && !f.archived && !f['is-closed'];
-    })
-    .map(hotel => {
-      const f = hotel.fieldData;
-      return {
-        name: f.name || f['hotel-name'] || 'Unnamed',
-        slug: f.slug,
-        region: f.region || f.location || 'Portugal',
-        lat: f.latitude || f.lat,
-        lng: f.longitude || f.lng || f.lon,
-        image: f['cover-image']?.url || f.cover?.url || f['main-image']?.url
-      };
-    })
-    .filter(h => h.lat && h.lng);
-
-  res.json(markers);
-});
-
-// Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -367,7 +394,6 @@ app.listen(PORT, async () => {
   console.log(`Anthropic API: ${ANTHROPIC_API_KEY ? 'Configured' : 'Not configured'}`);
   console.log(`Mapbox: ${MAPBOX_TOKEN ? 'Configured' : 'Not configured'}`);
   
-  // Initial cache load
   if (WEBFLOW_API_TOKEN) {
     await refreshCMSCache();
   }
